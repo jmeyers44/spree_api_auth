@@ -11,7 +11,6 @@ module Spree
 
         if @user.present?
           render "spree/api/users/user_exists", :status => 401 and return
-          return
         end
 
         @user = Spree::User.new(user_params)
