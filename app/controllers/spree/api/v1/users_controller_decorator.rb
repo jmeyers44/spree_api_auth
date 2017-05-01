@@ -10,26 +10,23 @@ users_controller.class_eval do
   before_action :authenticate_user, :except => [:sign_up, :sign_in]
 
   def sign_up
-    @user = Spree.user_class.find_by_email(params[:user][:email])
-    render 'user_exists', status: 401 and return if @user.present?
-
-    user_params = params.require(:user).permit(:email, :password, :password_confirmation)
-    @user = Spree.user_class.new(user_params)
-    unless @user.save
-      unauthorized
-      return
+    user_params = params.require(:user).permit :email, :password, :password_confirmation
+    @user = Spree.user_class.new user_params
+    if @user.save
+      @user.generate_spree_api_key!
+      render 'show'
+    else
+      invalid_resource! @user
     end
-    @user.generate_spree_api_key!
-    render 'show'
   end
 
   def sign_in
-    @user = Spree.user_class.find_by_email(params[:user][:email])
-    if !@user.present? || !@user.valid_password?(params[:user][:password])
+    @user = Spree.user_class.find_by! email: params[:user][:email]
+    if @user.valid_password? params[:user][:password]
+      @user.generate_spree_api_key! if @user.spree_api_key.blank?
+      render 'show'
+    else
       unauthorized
-      return
     end
-    @user.generate_spree_api_key! if @user.spree_api_key.blank?
-    render 'show'
   end
 end

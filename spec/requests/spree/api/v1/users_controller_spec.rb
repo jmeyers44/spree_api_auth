@@ -18,16 +18,11 @@ describe Spree::Api::V1::UsersController do
       expect( json_response['spree_api_key'] ).to eq user.spree_api_key
     end
 
-    it 'will return 401 unauthorized if record exists' do
+    it 'will return 422 and validation message if error' do
       create :user, email: params[:user][:email]
       expect { post endpoint, params: params }.to change { Spree.user_class.count }.by 0
-      expect( response ).to have_http_status 401
-    end
-
-    it 'will return 401 unauthorized if record invalid' do
-      params[:user][:email] = nil
-      expect { post endpoint, params: params }.to change { Spree.user_class.count }.by 0
-      expect( response ).to have_http_status 401
+      expect( response ).to have_http_status 422
+      expect( json_response['errors']['email'] ).to eq ['has already been taken']
     end
   end
 
@@ -52,9 +47,9 @@ describe Spree::Api::V1::UsersController do
       expect( response ).to have_http_status 401
     end
 
-    it 'will return 401 unauthorized if user not found' do
+    it 'will return 404 not found if user not found' do
       post endpoint, params: params
-      expect( response ).to have_http_status 401
+      expect( response ).to have_http_status 404
     end
   end
 end
@@ -63,7 +58,7 @@ end
 # Might be better to use mocks...
 $valid_test_password = nil
 Spree::LegacyUser.class_eval do
-  validates_presence_of :email
+  validates_uniqueness_of :email
 
   def valid_password? password
     $valid_test_password == password
