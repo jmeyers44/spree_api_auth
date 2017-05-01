@@ -1,0 +1,71 @@
+require 'spec_helper'
+
+describe Spree::Api::V1::UsersController do
+  let(:user) { Spree.user_class.last }
+  let(:json_response) { JSON.parse response.body }
+  let(:params) { {user: {email: 'john@example.com', password: 'password'}} }
+  before { $valid_test_password = nil }
+
+  describe 'sign up' do
+    let(:endpoint) { '/api/v1/users/sign_up' }
+    before { params[:user][:password_confirmation] = params[:user][:password] }
+
+    it 'will create a new user with an API token' do
+      expect { post endpoint, params: params }.to change { Spree.user_class.count }.by 1
+
+      expect( response ).to have_http_status 200
+      expect( json_response['email'] ).to eq user.email
+      expect( json_response['spree_api_key'] ).to eq user.spree_api_key
+    end
+
+    it 'will return 401 unauthorized if record exists' do
+      create :user, email: params[:user][:email]
+      expect { post endpoint, params: params }.to change { Spree.user_class.count }.by 0
+      expect( response ).to have_http_status 401
+    end
+
+    it 'will return 401 unauthorized if record invalid' do
+      params[:user][:email] = nil
+      expect { post endpoint, params: params }.to change { Spree.user_class.count }.by 0
+      expect( response ).to have_http_status 401
+    end
+  end
+
+  describe 'sign in' do
+    let(:endpoint) { '/api/v1/users/sign_in' }
+
+    it 'will return the user profile and API key if valid' do
+      $valid_test_password = 'password'
+      user = create :user, email: params[:user][:email]
+      post endpoint, params: params
+      user.reload
+
+      expect( response ).to have_http_status 200
+      expect( json_response['email'] ).to eq user.email
+      expect( json_response['spree_api_key'] ).to eq user.spree_api_key
+    end
+
+    it 'will return 401 unauthorized if password invalid' do
+      $valid_test_password = 'invalid'
+      user = create :user, email: params[:user][:email]
+      post endpoint, params: params
+      expect( response ).to have_http_status 401
+    end
+
+    it 'will return 401 unauthorized if user not found' do
+      post endpoint, params: params
+      expect( response ).to have_http_status 401
+    end
+  end
+end
+
+# HACK: We want Spree::LegacyUser to behave more like Spree::User.
+# Might be better to use mocks...
+$valid_test_password = nil
+Spree::LegacyUser.class_eval do
+  validates_presence_of :email
+
+  def valid_password? password
+    $valid_test_password == password
+  end
+end

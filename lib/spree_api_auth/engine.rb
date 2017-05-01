@@ -13,6 +13,8 @@ module SpreeApiAuth
       Dir.glob(File.join(File.dirname(__FILE__), '../../app/**/*_decorator*.rb')) do |c|
         Rails.configuration.cache_classes ? require(c) : load(c)
       end
+
+      Spree::Api::Config[:requires_authentication] = false
     end
 
     config.to_prepare &method(:activate).to_proc
