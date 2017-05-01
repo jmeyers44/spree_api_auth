@@ -11,7 +11,7 @@ users_controller.class_eval do
 
   def sign_up
     @user = Spree.user_class.find_by_email(params[:user][:email])
-    render 'spree/api/v1/users/user_exists', status: 401 and return if @user.present?
+    render 'user_exists', status: 401 and return if @user.present?
 
     user_params = params.require(:user).permit(:email, :password, :password_confirmation)
     @user = Spree.user_class.new(user_params)
@@ -20,6 +20,7 @@ users_controller.class_eval do
       return
     end
     @user.generate_spree_api_key!
+    render 'show'
   end
 
   def sign_in
@@ -29,5 +30,6 @@ users_controller.class_eval do
       return
     end
     @user.generate_spree_api_key! if @user.spree_api_key.blank?
+    render 'show'
   end
 end

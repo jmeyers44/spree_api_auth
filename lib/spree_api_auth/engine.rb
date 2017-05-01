@@ -15,6 +15,7 @@ module SpreeApiAuth
       end
 
       Spree::Api::Config[:requires_authentication] = false
+      Spree::Api::ApiHelpers.user_attributes << :spree_api_key
     end
 
     config.to_prepare &method(:activate).to_proc
