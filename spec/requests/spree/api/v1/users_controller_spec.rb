@@ -11,7 +11,7 @@ describe Spree::Api::V1::UsersController do
     before { params[:user][:password_confirmation] = params[:user][:password] }
 
     it 'will create a new user with an API token' do
-      expect { post endpoint, params: params }.to change { Spree.user_class.count }.by 1
+      expect { post endpoint, params }.to change { Spree.user_class.count }.by 1
 
       expect( response ).to have_http_status 200
       expect( json_response['email'] ).to eq user.email
@@ -20,7 +20,7 @@ describe Spree::Api::V1::UsersController do
 
     it 'will return 422 and validation message if error' do
       create :user, email: params[:user][:email]
-      expect { post endpoint, params: params }.to change { Spree.user_class.count }.by 0
+      expect { post endpoint, params }.to change { Spree.user_class.count }.by 0
       expect( response ).to have_http_status 422
       expect( json_response['errors']['email'] ).to eq ['has already been taken']
     end
@@ -30,9 +30,8 @@ describe Spree::Api::V1::UsersController do
     let(:endpoint) { '/api/v1/users/sign_in' }
 
     it 'will return the user profile and API key if valid' do
-      $valid_test_password = 'password'
-      user = create :user, email: params[:user][:email]
-      post endpoint, params: params
+      user = create :user, email: params[:user][:email], password: 'password'
+      post endpoint, params
       user.reload
 
       expect( response ).to have_http_status 200
@@ -41,26 +40,15 @@ describe Spree::Api::V1::UsersController do
     end
 
     it 'will return 401 unauthorized if password invalid' do
-      $valid_test_password = 'invalid'
+      params[:user][:password] = 'invalid'
       user = create :user, email: params[:user][:email]
-      post endpoint, params: params
+      post endpoint, params
       expect( response ).to have_http_status 401
     end
 
     it 'will return 404 not found if user not found' do
-      post endpoint, params: params
+      post endpoint, params
       expect( response ).to have_http_status 404
     end
-  end
-end
-
-# HACK: We want Spree::LegacyUser to behave more like Spree::User.
-# Might be better to use mocks...
-$valid_test_password = nil
-Spree::LegacyUser.class_eval do
-  validates_uniqueness_of :email
-
-  def valid_password? password
-    $valid_test_password == password
   end
 end

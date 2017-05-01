@@ -17,6 +17,8 @@ require 'spree/testing_support/controller_requests'
 require 'spree/testing_support/factories'
 require 'spree/testing_support/url_helpers'
 
+Spree.user_class = 'Spree::User'
+
 RSpec.configure do |config|
   config.include FactoryGirl::Syntax::Methods
 

@@ -14,6 +14,16 @@ task :default do
   Rake::Task[:spec].invoke
 end
 
+module InjectDeviseIntoDummyApp
+  def test_dummy_inject_extension_requirements
+    super
+    inside dummy_path do
+      inject_require_for('spree_auth_devise')
+    end
+  end
+end
+Spree::DummyGenerator.prepend InjectDeviseIntoDummyApp
+
 desc 'Generates a dummy app for testing'
 task :test_app do
   ENV['LIB_NAME'] = 'spree_api_auth'
