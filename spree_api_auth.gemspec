@@ -5,7 +5,7 @@ $LOAD_PATH.unshift lib unless $LOAD_PATH.include?(lib)
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
   s.name        = 'spree_api_auth'
-  s.version     = '0.2.1'
+  s.version     = '3.0.0'
   s.summary     = "Spree's Authenticattion API"
   s.description = "Spree's Authenticattion API"
   s.required_ruby_version = '>= 2.1.0'
