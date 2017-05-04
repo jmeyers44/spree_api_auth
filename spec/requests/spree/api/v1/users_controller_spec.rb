@@ -46,9 +46,9 @@ describe Spree::Api::V1::UsersController do
       expect( response ).to have_http_status 401
     end
 
-    it 'will return 404 not found if user not found' do
+    it 'will return 401 unauthorized if user not found' do
       post endpoint, params
-      expect( response ).to have_http_status 404
+      expect( response ).to have_http_status 401
     end
   end
 end

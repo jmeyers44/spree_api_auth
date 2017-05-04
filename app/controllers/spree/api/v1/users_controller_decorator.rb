@@ -17,8 +17,8 @@ Spree::Api::V1::UsersController.class_eval do
   end
 
   def sign_in
-    @user = Spree.user_class.find_by! email: params[:spree_user][:email]
     if warden.authenticate scope: :spree_user
+      @user = warden.user scope: :spree_user
       @user.generate_spree_api_key! if @user.spree_api_key.blank?
       render 'show'
     else
