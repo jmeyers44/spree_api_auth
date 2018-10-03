@@ -25,4 +25,21 @@ Spree::Api::V1::UsersController.class_eval do
       render 'invalid', status: 401
     end
   end
+
+  def recover
+    @user = Spree.user_class.find_by_email(user_params[:email])
+    if @user.present?
+     @user.send_reset_password_instructions
+    end
+    render json: {status: true}
+  end
+
+  def me
+    @user = current_api_user
+    if @user.present?
+      respond_with(@user, default_template: :show)
+    else
+      render 'invalid', status: 401
+    end
+  end
 end

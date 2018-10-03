@@ -4,6 +4,8 @@ Spree::Core::Engine.routes.draw do
       resource :users, only: [] do
         post :sign_up
         post :sign_in
+        post :recover
+        get :me
       end
     end
   end
